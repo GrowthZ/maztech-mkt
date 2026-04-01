@@ -1,0 +1,147 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  CONTENT
+  ADS
+  DATA_INPUT
+}
+
+enum Brand {
+  WINHOME
+  SIEU_THI_KE_GIA
+}
+
+enum ContentType {
+  IMAGE
+  VIDEO
+}
+
+enum DataSource {
+  FACEBOOK
+  HOTLINE
+  ZALO
+  TIKTOK
+  WEBSITE
+}
+
+enum OwnerName {
+  NAM
+  DUC
+}
+
+model User {
+  id           String         @id @default(cuid())
+  fullName     String
+  username     String         @unique
+  passwordHash String
+  role         Role
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  contentEntries ContentEntry[]
+  seoEntries   SeoEntry[]
+  adsEntries   AdsEntry[]
+  dataEntries  DataEntry[]
+  auditLogs    AuditLog[]
+
+  @@map("users")
+}
+
+model ContentEntry {
+  id          String      @id @default(cuid())
+  date        DateTime    @db.Date
+  ownerName   OwnerName
+  brand       Brand
+  fanpage     String
+  contentType ContentType
+  quantity    Int
+  createdById String
+  createdBy   User        @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([date])
+  @@index([brand])
+  @@index([ownerName])
+  @@index([createdById])
+  @@map("content_entries")
+}
+
+model SeoEntry {
+  id          String    @id @default(cuid())
+  date        DateTime  @db.Date
+  ownerName   OwnerName
+  website     String
+  quantity    Int
+  createdById String
+  createdBy   User      @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([date])
+  @@index([ownerName])
+  @@index([createdById])
+  @@map("seo_entries")
+}
+
+model AdsEntry {
+  id          String   @id @default(cuid())
+  date        DateTime @db.Date
+  brand       Brand
+  spend       Decimal  @db.Decimal(14, 2)
+  messages    Int
+  data        Int
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([date])
+  @@index([brand])
+  @@index([createdById])
+  @@map("ads_entries")
+}
+
+model DataEntry {
+  id          String     @id @default(cuid())
+  date        DateTime   @db.Date
+  brand       Brand
+  source      DataSource
+  count       Int
+  createdById String
+  createdBy   User       @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([date])
+  @@index([brand])
+  @@index([source])
+  @@index([createdById])
+  @@map("data_entries")
+}
+
+model AuditLog {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action       String
+  module       String
+  recordId     String
+  oldValueJson Json?
+  newValueJson Json?
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+  @@index([module])
+  @@index([recordId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
