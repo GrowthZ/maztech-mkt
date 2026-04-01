@@ -69,10 +69,6 @@ export default function LoginPage() {
           </div>
           <Button type="submit" className="w-full bg-gradient-to-r from-[#0B1F66] to-[#D81920] text-white hover:opacity-95" disabled={loading}>{loading ? 'Đang đăng nhập...' : 'Đăng nhập'}</Button>
         </form>
-
-        <div className="mt-6 rounded-xl bg-slate-50 p-4 text-sm text-slate-500">
-          Tài khoản seed mặc định: admin / nam / duc / thien / phuong · mật khẩu: 12345678
-        </div>
       </Card>
     </div>
   );
