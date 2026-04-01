@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { PrismaClient, Brand, ContentType, DataSource, OwnerName, Role } from '@prisma/client';
+import { Prisma, PrismaClient, Brand, ContentType, DataSource, OwnerName, Role } from '@prisma/client';
 import { subDays } from 'date-fns';
 
 const prisma = new PrismaClient();
@@ -91,7 +91,7 @@ async function main() {
         action: 'SEED',
         module: 'SYSTEM',
         recordId: 'initial-seed',
-        oldValueJson: null,
+        oldValueJson: Prisma.JsonNull,
         newValueJson: { ok: true, seededAt: new Date().toISOString() }
       },
       {
@@ -99,7 +99,7 @@ async function main() {
         action: 'CREATE',
         module: 'content_entries',
         recordId: 'seed-content-nam',
-        oldValueJson: null,
+        oldValueJson: Prisma.JsonNull,
         newValueJson: { ownerName: 'NAM', fanpage: 'Winhome Fanpage Chính' }
       },
       {
@@ -115,7 +115,7 @@ async function main() {
         action: 'CREATE',
         module: 'data_entries',
         recordId: 'seed-data-phuong',
-        oldValueJson: null,
+        oldValueJson: Prisma.JsonNull,
         newValueJson: { source: 'FACEBOOK', count: 15 }
       }
     ]

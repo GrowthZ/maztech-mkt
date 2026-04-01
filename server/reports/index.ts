@@ -6,6 +6,10 @@ import { toNumber } from '@/lib/utils';
 import { getBrandFromWebsite } from '@/lib/presentation';
 import { scopedAdsWhere, scopedContentWhere, scopedDataWhere, scopedSeoWhere } from '@/server/services/common';
 
+function isActivityAction(action: string): action is ActivityRow['action'] {
+  return action === 'CREATE' || action === 'UPDATE' || action === 'DELETE' || action === 'SEED';
+}
+
 function safeRatio(numerator: number, denominator: number) {
   return denominator > 0 ? numerator / denominator : 0;
 }
@@ -189,7 +193,7 @@ export async function recentActivities(filters: ResolvedFilters, user: JwtUser):
     id: item.id,
     time: item.createdAt.toISOString(),
     user: item.user.fullName,
-    action: item.action,
+    action: isActivityAction(item.action) ? item.action : 'UPDATE',
     module: item.module,
     recordId: item.recordId
   }));

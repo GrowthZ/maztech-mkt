@@ -63,7 +63,7 @@ export async function GET(request: Request) {
       }
 
       const bytes = await pdf.save();
-      const body = new Blob([bytes], { type: 'application/pdf' });
+      const body = Uint8Array.from(bytes);
 
       return new Response(body, {
         headers: {
