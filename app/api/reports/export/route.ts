@@ -63,7 +63,9 @@ export async function GET(request: Request) {
       }
 
       const bytes = await pdf.save();
-      return new Response(bytes, {
+      const body = new Blob([bytes], { type: 'application/pdf' });
+
+      return new Response(body, {
         headers: {
           'Content-Type': 'application/pdf',
           'Content-Disposition': 'attachment; filename="maztech-mkt-hub-report.pdf"'
