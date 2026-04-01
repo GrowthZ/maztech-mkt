@@ -9,3 +9,8 @@ coverage/
 *.tsbuildinfo
 .DS_Store
 .codex
+.vercel
+.env*.local
+.agents/
+.claude/
+skills-lock.json
