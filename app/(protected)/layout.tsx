@@ -15,7 +15,7 @@ export default async function ProtectedLayout({ children }: { children: ReactNod
       <div className="mx-auto flex min-h-screen max-w-[1800px]">
         <Sidebar user={user} />
         <main className="flex-1 p-3 sm:p-4 lg:p-8">
-          <div className="sticky top-2 z-40 mb-4 flex items-center justify-between gap-3 rounded-3xl border border-slate-200 bg-white/95 px-4 py-3 shadow-soft backdrop-blur supports-[backdrop-filter]:bg-white/85 sm:mb-6 sm:px-5 lg:static lg:bg-white lg:backdrop-blur-0">
+          <div className="sticky top-2 z-[60] mb-4 flex items-center justify-between gap-3 rounded-3xl border border-slate-200 bg-white/95 px-4 py-3 shadow-soft backdrop-blur supports-[backdrop-filter]:bg-white/85 sm:mb-6 sm:px-5 lg:static lg:bg-white lg:backdrop-blur-0">
             <div className="flex min-w-0 items-center gap-3">
               <div className="lg:hidden">
                 <MobileSidebar user={user} />

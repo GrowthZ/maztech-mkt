@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { createPortal } from 'react-dom';
 import { Menu, X, BarChart3, ClipboardList, FileBarChart2, FilePenLine, Megaphone, NotebookPen, Shield, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ModuleName } from '@/lib/permissions';
@@ -73,6 +74,123 @@ export function MobileSidebar({ user }: { user: JwtUser }) {
     return links.filter((item) => !item.module);
   }, [user.role]);
 
+  const drawer = mounted ? (
+    <div className="fixed inset-0 z-[9999] lg:hidden">
+      <div
+        className={cn(
+          'absolute inset-0 z-[10000] bg-slate-900/40 backdrop-blur-[2px] transition-opacity duration-300 ease-in-out',
+          open ? 'opacity-100' : 'opacity-0'
+        )}
+        onClick={closeDrawer}
+      />
+
+      <aside className={cn(
+        'absolute left-0 top-0 z-[10001] flex h-full w-[280px] flex-col overflow-hidden bg-white shadow-2xl transition-transform duration-300 ease-in-out sm:w-[320px]',
+        open ? 'translate-x-0' : '-translate-x-full'
+      )}>
+        <div className="flex flex-col border-b border-slate-100 bg-white px-6 py-8">
+          <div className="mb-8 flex items-center justify-between">
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-blue-600/70">Maztech</span>
+              <span className="text-xl font-black tracking-tight text-[#0B1F66]">MKT HUB</span>
+            </div>
+            <button
+              type="button"
+              aria-label="Đóng menu"
+              onClick={closeDrawer}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-50 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 active:scale-95"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0B1F66] text-xs font-bold text-white shadow-lg shadow-blue-900/20">
+              {user.fullName?.charAt(0) || user.username?.charAt(0).toUpperCase() || 'U'}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-sm font-bold text-slate-900">{user.fullName || user.username}</div>
+              <div className="truncate text-[10px] font-medium uppercase tracking-wider text-slate-400">{user.role}</div>
+            </div>
+          </div>
+        </div>
+
+        <nav className="scrollbar-none flex-1 space-y-1 overflow-y-auto px-4 py-6">
+          <div className="mb-4 px-4 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Điều hướng</div>
+          {visibleLinks.length ? visibleLinks.map((item) => {
+            const Icon = item.icon;
+            const active = pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={closeDrawer}
+                className={cn(
+                  'group relative flex items-center gap-3 rounded-xl px-4 py-3.5 text-sm font-semibold transition-all duration-200',
+                  active
+                    ? 'bg-blue-50 text-[#0B1F66] ring-1 ring-blue-100/50'
+                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                )}
+              >
+                <Icon className={cn(
+                  'h-5 w-5 transition-colors',
+                  active ? 'text-[#0B1F66]' : 'text-slate-400 group-hover:text-slate-600'
+                )} />
+                {item.label}
+                {active && <div className="absolute left-0 h-6 w-1 rounded-r-full bg-[#0B1F66]" />}
+              </Link>
+            );
+          }) : (
+            <div className="mx-4 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-xs font-medium text-slate-400">
+              Không có quyền truy cập
+            </div>
+          )}
+
+          {user.role === 'ADMIN' && (
+            <div className="mt-8 border-t border-slate-100 pt-6">
+              <div className="mb-4 px-4 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Quản trị</div>
+              <div className="space-y-1">
+                {adminLinks.map((item) => {
+                  const Icon = item.icon;
+                  const active = pathname.startsWith(item.href);
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={closeDrawer}
+                      className={cn(
+                        'group relative flex items-center gap-3 rounded-xl px-4 py-3.5 text-sm font-semibold transition-all duration-200',
+                        active
+                          ? 'bg-blue-50 text-[#0B1F66] ring-1 ring-blue-100/50'
+                          : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                      )}
+                    >
+                      <Icon className={cn(
+                        'h-5 w-5 transition-colors',
+                        active ? 'text-[#0B1F66]' : 'text-slate-400 group-hover:text-slate-600'
+                      )} />
+                      {item.label}
+                      {active && <div className="absolute left-0 h-6 w-1 rounded-r-full bg-[#0B1F66]" />}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </nav>
+
+        <div className="border-t border-slate-100 bg-white p-6">
+          <Link
+            href="/api/auth/logout"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-rose-50 px-4 py-3 text-sm font-bold text-rose-600 transition-all hover:bg-rose-100 active:scale-95"
+          >
+            Đăng xuất
+          </Link>
+        </div>
+      </aside>
+    </div>
+  ) : null;
+
   return (
     <>
       <button
@@ -85,90 +203,7 @@ export function MobileSidebar({ user }: { user: JwtUser }) {
         <Menu className="h-5 w-5" />
       </button>
 
-      {mounted ? (
-        <div className="fixed inset-0 z-[120] lg:hidden">
-          <button
-            type="button"
-            aria-label="Đóng menu"
-            className={cn(
-              'absolute inset-0 z-[121] bg-slate-900/35 backdrop-blur-[1px] transition-opacity duration-200',
-              open ? 'opacity-100' : 'opacity-0'
-            )}
-            onClick={closeDrawer}
-          />
-
-          <aside className={cn(
-            'absolute left-0 top-0 z-[122] flex h-full w-[82vw] max-w-xs flex-col border-r border-slate-200 bg-white p-4 shadow-2xl transition-transform duration-200 ease-out',
-            open ? 'translate-x-0' : '-translate-x-full'
-          )}>
-            <div className="mb-4 flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-              <div>
-                <div className="text-xs uppercase tracking-[0.18em] text-slate-400">Maztech MKT Hub</div>
-                <div className="text-sm font-semibold text-slate-900">Menu điều hướng</div>
-              </div>
-              <button
-                type="button"
-                aria-label="Đóng menu"
-                onClick={closeDrawer}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <nav className="flex-1 space-y-1 overflow-y-auto pb-4">
-              {visibleLinks.length ? visibleLinks.map((item) => {
-                const Icon = item.icon;
-                const active = pathname.startsWith(item.href);
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={closeDrawer}
-                    className={cn(
-                      'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900',
-                      active && 'bg-blue-50 text-[#0B1F66]'
-                    )}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {item.label}
-                  </Link>
-                );
-              }) : (
-                <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
-                  Chưa có mục điều hướng khả dụng.
-                </div>
-              )}
-            </nav>
-
-            {user.role === 'ADMIN' ? (
-              <div className="mt-4 border-t pt-4">
-                <div className="mb-2 px-4 text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Quản trị</div>
-                <div className="space-y-1">
-                  {adminLinks.map((item) => {
-                    const Icon = item.icon;
-                    const active = pathname.startsWith(item.href);
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={closeDrawer}
-                        className={cn(
-                          'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900',
-                          active && 'bg-blue-50 text-[#0B1F66]'
-                        )}
-                      >
-                        <Icon className="h-4 w-4" />
-                        {item.label}
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-            ) : null}
-          </aside>
-        </div>
-      ) : null}
+      {typeof document !== 'undefined' ? createPortal(drawer, document.body) : null}
     </>
   );
 }
