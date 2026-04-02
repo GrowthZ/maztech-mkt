@@ -25,19 +25,6 @@ export function Sidebar({ user }: { user: JwtUser }) {
 
   return (
     <aside className="hidden w-72 flex-col border-r border-slate-200 bg-white p-5 lg:flex">
-      <div className="mb-8 rounded-3xl border border-blue-950/10 bg-gradient-to-br from-[#0B1F66] via-[#152C85] to-[#D81920] p-5 text-white shadow-soft">
-        <div className="flex items-center gap-4">
-          <div className="rounded-2xl bg-white/10 p-3 backdrop-blur-sm">
-            <img src="/maztech-logo.png" alt="Maztech" className="h-14 w-auto object-contain" />
-          </div>
-          <div>
-            <div className="text-xs uppercase tracking-[0.2em] text-blue-100">Maztech Group</div>
-            <div className="mt-1 text-2xl font-bold">MKT Hub</div>
-            <div className="mt-1 text-sm text-blue-50/90">Hệ thống quản trị nội bộ cho Winhome và Siêu Thị Kệ Giá</div>
-          </div>
-        </div>
-      </div>
-
       <nav className="space-y-1">
         {links.filter((item) => !item.module || canAccessModule(user, item.module)).map((item) => {
           const Icon = item.icon;
