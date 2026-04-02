@@ -1,3 +1,5 @@
+import { Spinner } from '@/components/ui/spinner';
+
 export default function Loading() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-100 via-white to-blue-50 p-6">
@@ -8,10 +10,8 @@ export default function Loading() {
         <div className="mb-2 text-xs uppercase tracking-[0.24em] text-[#0B1F66]">Maztech MKT Hub</div>
         <div className="text-xl font-semibold text-slate-900">Đang tải dữ liệu</div>
         <div className="mt-2 text-sm text-slate-500">Vui lòng chờ trong giây lát.</div>
-        <div className="mt-6 flex items-center justify-center gap-2">
-          <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#0B1F66] [animation-delay:-0.3s]" />
-          <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#152C85] [animation-delay:-0.15s]" />
-          <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#D81920]" />
+        <div className="mt-6 flex items-center justify-center">
+          <Spinner className="h-8 w-8 border-[3px] text-[#0B1F66]" />
         </div>
       </div>
     </div>

@@ -5,9 +5,20 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
+const databaseUrl = process.env.DATABASE_URL?.trim().replace(/\\n/g, '');
+
+if (!databaseUrl) {
+  throw new Error('DATABASE_URL chưa được cấu hình');
+}
+
 export const prisma =
   global.prisma ||
   new PrismaClient({
+    datasources: {
+      db: {
+        url: databaseUrl
+      }
+    },
     log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error']
   });
 

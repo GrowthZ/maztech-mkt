@@ -11,13 +11,15 @@ export function dateWhere(filters: ResolvedFilters) {
 }
 
 export function scopedContentWhere(filters: ResolvedFilters, user: JwtUser): Prisma.ContentEntryWhereInput {
+  const ownerName = ownerNameFromUsername(user.username);
+
   return {
     date: dateWhere(filters),
     ...(filters.brand ? { brand: filters.brand as never } : {}),
     ...(filters.owner ? { ownerName: filters.owner as never } : {}),
     ...(!isAdmin(user)
       ? {
-          ownerName: ownerNameFromUsername(user.username) as never,
+          ...(ownerName ? { ownerName: ownerName as never } : {}),
           createdById: user.id
         }
       : {})
@@ -25,12 +27,14 @@ export function scopedContentWhere(filters: ResolvedFilters, user: JwtUser): Pri
 }
 
 export function scopedSeoWhere(filters: ResolvedFilters, user: JwtUser): Prisma.SeoEntryWhereInput {
+  const ownerName = ownerNameFromUsername(user.username);
+
   return {
     date: dateWhere(filters),
     ...(filters.owner ? { ownerName: filters.owner as never } : {}),
     ...(!isAdmin(user)
       ? {
-          ownerName: ownerNameFromUsername(user.username) as never,
+          ...(ownerName ? { ownerName: ownerName as never } : {}),
           createdById: user.id
         }
       : {})

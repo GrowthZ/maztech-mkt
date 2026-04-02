@@ -12,8 +12,7 @@ export function UserMenu({ user }: { user: JwtUser }) {
     const response = await fetch('/api/auth/logout', { method: 'POST' });
     if (response.ok) {
       toast.success('Đăng xuất thành công');
-      router.push('/login');
-      router.refresh();
+      router.replace('/login');
     }
   }
 

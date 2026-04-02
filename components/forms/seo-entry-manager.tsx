@@ -77,7 +77,7 @@ export function SeoEntryManager() {
           <div><Label>Website</Label><Select {...form.register('website')}>{WEBSITE_OPTIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</Select></div>
           <div><Label>Số bài</Label><Input type="number" min={1} {...form.register('quantity', { valueAsNumber: true })} /></div>
           <p className="text-xs text-red-500">{Object.values(form.formState.errors)[0]?.message as string | undefined}</p>
-          <div className="flex gap-3"><Button type="submit">{editing ? 'Cập nhật' : 'Thêm mới'}</Button>{editing ? <Button type="button" variant="outline" onClick={() => { setEditing(null); form.reset(defaultValues); }}>Hủy</Button> : null}</div>
+          <div className="flex gap-3"><Button type="submit" loading={saveMutation.isPending} loadingText="Đang lưu...">{editing ? 'Cập nhật' : 'Thêm mới'}</Button>{editing ? <Button type="button" variant="outline" onClick={() => { setEditing(null); form.reset(defaultValues); }}>Hủy</Button> : null}</div>
         </form>
       </Card>
       <Card>

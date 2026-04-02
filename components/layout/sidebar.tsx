@@ -4,15 +4,16 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { BarChart3, ClipboardList, FileBarChart2, FilePenLine, Megaphone, NotebookPen, Shield, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { canAccessModule, type ModuleName } from '@/lib/permissions';
 import type { JwtUser } from '@/types';
 
 const links = [
-  { href: '/dashboard', label: 'Dashboard', icon: BarChart3 },
-  { href: '/input/content', label: 'Nhập social', icon: FilePenLine },
-  { href: '/input/seo', label: 'Nhập SEO', icon: NotebookPen },
-  { href: '/input/ads', label: 'Nhập Ads', icon: Megaphone },
-  { href: '/input/data', label: 'Nhập data', icon: ClipboardList },
-  { href: '/reports', label: 'Báo cáo', icon: FileBarChart2 }
+  { href: '/dashboard', label: 'Dashboard', icon: BarChart3, module: null },
+  { href: '/input/content', label: 'Nhập social', icon: FilePenLine, module: 'content' as ModuleName },
+  { href: '/input/seo', label: 'Nhập SEO', icon: NotebookPen, module: 'seo' as ModuleName },
+  { href: '/input/ads', label: 'Nhập Ads', icon: Megaphone, module: 'ads' as ModuleName },
+  { href: '/input/data', label: 'Nhập data', icon: ClipboardList, module: 'data' as ModuleName },
+  { href: '/reports', label: 'Báo cáo', icon: FileBarChart2, module: null }
 ] as const;
 
 export function Sidebar({ user }: { user: JwtUser }) {
@@ -38,7 +39,7 @@ export function Sidebar({ user }: { user: JwtUser }) {
       </div>
 
       <nav className="space-y-1">
-        {links.map((item) => {
+        {links.filter((item) => !item.module || canAccessModule(user, item.module)).map((item) => {
           const Icon = item.icon;
           const active = pathname.startsWith(item.href);
           return (

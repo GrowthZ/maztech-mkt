@@ -113,7 +113,7 @@ export function ContentEntryManager() {
           <div><Label>Số lượng</Label><Input type="number" min={1} {...form.register('quantity', { valueAsNumber: true })} /></div>
           <p className="text-xs text-red-500">{Object.values(form.formState.errors)[0]?.message as string | undefined}</p>
           <div className="flex gap-3">
-            <Button type="submit" disabled={saveMutation.isPending}>{saveMutation.isPending ? 'Đang lưu...' : editing ? 'Cập nhật' : 'Thêm mới'}</Button>
+            <Button type="submit" loading={saveMutation.isPending} loadingText="Đang lưu...">{editing ? 'Cập nhật' : 'Thêm mới'}</Button>
             {editing ? <Button type="button" variant="outline" onClick={() => { setEditing(null); form.reset(defaultValues); }}>Hủy</Button> : null}
           </div>
         </form>

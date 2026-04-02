@@ -33,8 +33,7 @@ export default function LoginPage() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Đăng nhập thất bại');
       toast.success('Đăng nhập thành công');
-      router.push('/dashboard');
-      router.refresh();
+      router.replace('/dashboard');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Đăng nhập thất bại');
     } finally {
@@ -67,7 +66,7 @@ export default function LoginPage() {
             <Input type="password" {...form.register('password')} placeholder="Nhập mật khẩu" />
             <p className="mt-1 text-xs text-red-500">{form.formState.errors.password?.message}</p>
           </div>
-          <Button type="submit" className="w-full bg-gradient-to-r from-[#0B1F66] to-[#D81920] text-white hover:opacity-95" disabled={loading}>{loading ? 'Đang đăng nhập...' : 'Đăng nhập'}</Button>
+          <Button type="submit" className="w-full bg-gradient-to-r from-[#0B1F66] to-[#D81920] text-white hover:opacity-95" loading={loading} loadingText="Đang đăng nhập...">Đăng nhập</Button>
         </form>
       </Card>
     </div>
