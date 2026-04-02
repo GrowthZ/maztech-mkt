@@ -9,7 +9,7 @@ async function verifyToken(token: string) {
   const secret = process.env.JWT_SECRET;
   if (!secret) throw new Error('JWT_SECRET chưa cấu hình');
   const { payload } = await jwtVerify(token, new TextEncoder().encode(secret));
-  return payload as { role?: string; username?: string };
+  return payload as { role?: string; username?: string; fullName?: string };
 }
 
 function inputModuleFromPath(pathname: string): ModuleName | null {
@@ -49,7 +49,7 @@ export async function middleware(request: NextRequest) {
     }
 
     const inputModule = inputModuleFromPath(pathname);
-    if (inputModule && !canAccessModuleByIdentity(payload.role, payload.username, inputModule)) {
+    if (inputModule && !canAccessModuleByIdentity(payload.role, payload.username, inputModule, payload.fullName)) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 

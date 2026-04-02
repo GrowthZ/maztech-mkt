@@ -1,7 +1,7 @@
 import type { ResolvedFilters } from '@/lib/filters';
 import type { Prisma } from '@prisma/client';
 import type { JwtUser } from '@/types';
-import { isAdmin, ownerNameFromUsername } from '@/lib/permissions';
+import { hasGlobalAccess, ownerNameFromIdentity } from '@/lib/permissions';
 
 export function dateWhere(filters: ResolvedFilters) {
   return {
@@ -11,13 +11,13 @@ export function dateWhere(filters: ResolvedFilters) {
 }
 
 export function scopedContentWhere(filters: ResolvedFilters, user: JwtUser): Prisma.ContentEntryWhereInput {
-  const ownerName = ownerNameFromUsername(user.username);
+  const ownerName = ownerNameFromIdentity(user.username, user.fullName);
 
   return {
     date: dateWhere(filters),
     ...(filters.brand ? { brand: filters.brand as never } : {}),
     ...(filters.owner ? { ownerName: filters.owner as never } : {}),
-    ...(!isAdmin(user)
+      ...(!hasGlobalAccess(user)
       ? {
           ...(ownerName ? { ownerName: ownerName as never } : {}),
           createdById: user.id
@@ -27,12 +27,12 @@ export function scopedContentWhere(filters: ResolvedFilters, user: JwtUser): Pri
 }
 
 export function scopedSeoWhere(filters: ResolvedFilters, user: JwtUser): Prisma.SeoEntryWhereInput {
-  const ownerName = ownerNameFromUsername(user.username);
+  const ownerName = ownerNameFromIdentity(user.username, user.fullName);
 
   return {
     date: dateWhere(filters),
     ...(filters.owner ? { ownerName: filters.owner as never } : {}),
-    ...(!isAdmin(user)
+      ...(!hasGlobalAccess(user)
       ? {
           ...(ownerName ? { ownerName: ownerName as never } : {}),
           createdById: user.id
@@ -45,7 +45,7 @@ export function scopedAdsWhere(filters: ResolvedFilters, user: JwtUser): Prisma.
   return {
     date: dateWhere(filters),
     ...(filters.brand ? { brand: filters.brand as never } : {}),
-    ...(!isAdmin(user) ? { createdById: user.id } : {})
+    ...(!hasGlobalAccess(user) ? { createdById: user.id } : {})
   };
 }
 
@@ -54,6 +54,6 @@ export function scopedDataWhere(filters: ResolvedFilters, user: JwtUser): Prisma
     date: dateWhere(filters),
     ...(filters.brand ? { brand: filters.brand as never } : {}),
     ...(filters.source ? { source: filters.source as never } : {}),
-    ...(!isAdmin(user) ? { createdById: user.id } : {})
+      ...(!hasGlobalAccess(user) ? { createdById: user.id } : {})
   };
 }

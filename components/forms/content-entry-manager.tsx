@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -19,9 +19,11 @@ import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table';
 import { EmptyState } from '@/components/shared/empty-state';
 import { formatDate } from '@/lib/format';
 import { formatBrandLabel, formatContentTypeLabel, formatOwnerLabel } from '@/lib/presentation';
+import { ownerNameFromIdentity } from '@/lib/permissions';
 
 type FormValues = z.infer<typeof contentEntrySchema>;
 type Entry = FormValues & { id: string; createdAt: string; updatedAt: string };
+type AuthMe = { user: { username: string; fullName: string; role: 'ADMIN' | 'CONTENT' | 'ADS' | 'DATA_INPUT' } };
 
 const defaultValues: FormValues = {
   date: new Date().toISOString().slice(0, 10),
@@ -46,6 +48,24 @@ export function ContentEntryManager() {
     resolver: zodResolver(contentEntrySchema),
     defaultValues
   });
+
+  const meQuery = useQuery({ queryKey: ['auth-me'], queryFn: () => apiFetch<AuthMe>('/api/auth/me') });
+
+  const resolvedOwner = useMemo(() => {
+    const me = meQuery.data?.user;
+    return ownerNameFromIdentity(me?.username, me?.fullName);
+  }, [meQuery.data]);
+
+  const ownerOptions = useMemo(() => {
+    if (meQuery.data?.user.role === 'ADMIN' || !resolvedOwner) return OWNER_OPTIONS;
+    return OWNER_OPTIONS.filter((item) => item.value === resolvedOwner);
+  }, [meQuery.data, resolvedOwner]);
+
+  useEffect(() => {
+    if (!editing && resolvedOwner && form.getValues('ownerName') !== resolvedOwner) {
+      form.setValue('ownerName', resolvedOwner);
+    }
+  }, [editing, form, resolvedOwner]);
 
   const listQuery = useQuery({
     queryKey: ['content-entries', queryString],
@@ -106,7 +126,7 @@ export function ContentEntryManager() {
         </div>
         <form className="space-y-4" onSubmit={form.handleSubmit((values) => saveMutation.mutate(values))}>
           <div><Label>Ngày</Label><Input type="date" {...form.register('date')} /></div>
-          <div><Label>Nhân sự</Label><Select {...form.register('ownerName')}>{OWNER_OPTIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</Select></div>
+          <div><Label>Nhân sự</Label><Select {...form.register('ownerName')}>{ownerOptions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</Select></div>
           <div><Label>Thương hiệu</Label><Select {...form.register('brand')}>{BRAND_OPTIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</Select></div>
           <div><Label>Fanpage</Label><Select {...form.register('fanpage')}>{FANPAGE_OPTIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</Select></div>
           <div><Label>Loại bài</Label><Select {...form.register('contentType')}>{CONTENT_TYPE_OPTIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</Select></div>
