@@ -2,10 +2,13 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { createPortal } from 'react-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Menu, X, BarChart3, ClipboardList, FileBarChart2, FilePenLine, Megaphone, NotebookPen, Shield, Users } from 'lucide-react';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { logoutAndClearClientState } from '@/lib/client/logout';
 import type { ModuleName } from '@/lib/permissions';
 import type { JwtUser } from '@/types';
 
@@ -20,8 +23,11 @@ const links = [
 
 export function MobileSidebar({ user }: { user: JwtUser }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function openDrawer() {
@@ -39,6 +45,24 @@ export function MobileSidebar({ user }: { user: JwtUser }) {
       setMounted(false);
       closeTimeoutRef.current = null;
     }, 220);
+  }
+
+  async function onLogout() {
+    if (isLoggingOut) return;
+
+    setIsLoggingOut(true);
+    try {
+      await logoutAndClearClientState();
+      queryClient.clear();
+      toast.success('Đăng xuất thành công');
+    } catch {
+      toast.error('Đăng xuất thất bại, vui lòng thử lại');
+    } finally {
+      closeDrawer();
+      router.replace('/login');
+      router.refresh();
+      setIsLoggingOut(false);
+    }
   }
 
   useEffect(() => {
@@ -180,12 +204,14 @@ export function MobileSidebar({ user }: { user: JwtUser }) {
         </nav>
 
         <div className="border-t border-slate-100 bg-white p-6">
-          <Link
-            href="/api/auth/logout"
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-rose-50 px-4 py-3 text-sm font-bold text-rose-600 transition-all hover:bg-rose-100 active:scale-95"
+          <button
+            type="button"
+            onClick={onLogout}
+            disabled={isLoggingOut}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-rose-50 px-4 py-3 text-sm font-bold text-rose-600 transition-all hover:bg-rose-100 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
           >
             Đăng xuất
-          </Link>
+          </button>
         </div>
       </aside>
     </div>

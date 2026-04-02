@@ -5,6 +5,14 @@ import { canAccessModuleByIdentity, type ModuleName } from '@/lib/permissions';
 const AUTH_COOKIE = 'maztech_mkt_token';
 const protectedPrefixes = ['/dashboard', '/input', '/reports', '/settings', '/audit-logs'];
 
+function withNoStoreHeaders(response: NextResponse) {
+  response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+  response.headers.set('Pragma', 'no-cache');
+  response.headers.set('Expires', '0');
+  response.headers.set('Surrogate-Control', 'no-store');
+  return response;
+}
+
 async function verifyToken(token: string) {
   const secret = process.env.JWT_SECRET;
   if (!secret) throw new Error('JWT_SECRET chưa cấu hình');
@@ -32,30 +40,30 @@ export async function middleware(request: NextRequest) {
 
   if (!token) {
     if (isProtected || pathname === '/') {
-      return NextResponse.redirect(new URL('/login', request.url));
+      return withNoStoreHeaders(NextResponse.redirect(new URL('/login', request.url)));
     }
-    return NextResponse.next();
+    return withNoStoreHeaders(NextResponse.next());
   }
 
   try {
     const payload = await verifyToken(token);
 
     if (pathname === '/') {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+      return withNoStoreHeaders(NextResponse.redirect(new URL('/dashboard', request.url)));
     }
 
     if ((pathname.startsWith('/settings') || pathname.startsWith('/audit-logs')) && payload.role !== 'ADMIN') {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+      return withNoStoreHeaders(NextResponse.redirect(new URL('/dashboard', request.url)));
     }
 
     const inputModule = inputModuleFromPath(pathname);
     if (inputModule && !canAccessModuleByIdentity(payload.role, payload.username, inputModule, payload.fullName)) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+      return withNoStoreHeaders(NextResponse.redirect(new URL('/dashboard', request.url)));
     }
 
-    return NextResponse.next();
+    return withNoStoreHeaders(NextResponse.next());
   } catch {
-    const response = NextResponse.redirect(new URL('/login', request.url));
+    const response = withNoStoreHeaders(NextResponse.redirect(new URL('/login', request.url)));
     response.cookies.delete(AUTH_COOKIE);
     return response;
   }
