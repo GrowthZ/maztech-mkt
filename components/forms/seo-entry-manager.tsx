@@ -25,11 +25,11 @@ type FormValues = z.infer<typeof seoEntrySchema>;
 type Entry = FormValues & { id: string; createdAt: string; updatedAt: string };
 type AuthMe = { user: { username: string; fullName: string; role: 'ADMIN' | 'CONTENT' | 'ADS' | 'DATA_INPUT' } };
 
-const defaultValues: FormValues = {
+const defaultValues: Partial<FormValues> = {
   date: new Date().toISOString().slice(0, 10),
   ownerName: 'NAM',
   website: WEBSITE_OPTIONS[0].value,
-  quantity: 1
+  quantity: undefined
 };
 
 export function SeoEntryManager() {
@@ -95,7 +95,7 @@ export function SeoEntryManager() {
           <div><Label>Ngày</Label><Input type="date" {...form.register('date')} /></div>
           <div><Label>Nhân sự</Label><Select {...form.register('ownerName')}>{ownerOptions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</Select></div>
           <div><Label>Website</Label><Select {...form.register('website')}>{WEBSITE_OPTIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</Select></div>
-          <div><Label>Số bài</Label><Input type="number" min={1} {...form.register('quantity', { valueAsNumber: true })} /></div>
+          <div><Label>Số bài</Label><Input type="number" min={1} placeholder="Nhập số bài" {...form.register('quantity', { valueAsNumber: true })} /></div>
           <p className="text-xs text-red-500">{Object.values(form.formState.errors)[0]?.message as string | undefined}</p>
           <div className="flex gap-3"><Button type="submit" loading={saveMutation.isPending} loadingText="Đang lưu...">{editing ? 'Cập nhật' : 'Thêm mới'}</Button>{editing ? <Button type="button" variant="outline" onClick={() => { setEditing(null); form.reset(defaultValues); }}>Hủy</Button> : null}</div>
         </form>

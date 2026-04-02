@@ -25,13 +25,13 @@ type FormValues = z.infer<typeof contentEntrySchema>;
 type Entry = FormValues & { id: string; createdAt: string; updatedAt: string };
 type AuthMe = { user: { username: string; fullName: string; role: 'ADMIN' | 'CONTENT' | 'ADS' | 'DATA_INPUT' } };
 
-const defaultValues: FormValues = {
+const defaultValues: Partial<FormValues> = {
   date: new Date().toISOString().slice(0, 10),
   ownerName: 'NAM',
   brand: 'WINHOME',
   fanpage: FANPAGE_OPTIONS[0].value,
   contentType: 'IMAGE',
-  quantity: 1
+  quantity: undefined
 };
 
 export function ContentEntryManager() {
@@ -130,7 +130,7 @@ export function ContentEntryManager() {
           <div><Label>Thương hiệu</Label><Select {...form.register('brand')}>{BRAND_OPTIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</Select></div>
           <div><Label>Fanpage</Label><Select {...form.register('fanpage')}>{FANPAGE_OPTIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</Select></div>
           <div><Label>Loại bài</Label><Select {...form.register('contentType')}>{CONTENT_TYPE_OPTIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</Select></div>
-          <div><Label>Số lượng</Label><Input type="number" min={1} {...form.register('quantity', { valueAsNumber: true })} /></div>
+          <div><Label>Số lượng</Label><Input type="number" min={1} placeholder="Nhập số lượng" {...form.register('quantity', { valueAsNumber: true })} /></div>
           <p className="text-xs text-red-500">{Object.values(form.formState.errors)[0]?.message as string | undefined}</p>
           <div className="flex gap-3">
             <Button type="submit" loading={saveMutation.isPending} loadingText="Đang lưu...">{editing ? 'Cập nhật' : 'Thêm mới'}</Button>
