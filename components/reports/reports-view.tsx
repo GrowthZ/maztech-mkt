@@ -1,8 +1,8 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { PieChart, Download } from 'lucide-react';
+import { PieChart, Download, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { formatCurrency, formatDate, formatNumber } from '@/lib/format';
@@ -17,7 +17,11 @@ const toneMap = {
   rose: { wrapper: 'border-rose-200 bg-gradient-to-br from-rose-50 to-pink-50', chip: 'bg-rose-100 text-rose-700', bar: 'bg-rose-500' }
 } as const;
 
+type SpotlightKey = 'content' | 'fanpage' | 'ads' | 'data';
+
 export function ReportsView({ data, canExport }: { data: AllReportsData; canExport: boolean }) {
+  const [activeSpotlight, setActiveSpotlight] = useState<SpotlightKey | null>(null);
+
   function download(format: 'xlsx' | 'pdf') {
     const query = new URLSearchParams(window.location.search);
     query.set('format', format);
@@ -25,6 +29,7 @@ export function ReportsView({ data, canExport }: { data: AllReportsData; canExpo
   }
 
   const sourceTotal = data.source.reduce((sum, item) => sum + item.total, 0);
+  const detail = useMemo(() => buildSpotlightDetail(activeSpotlight, data), [activeSpotlight, data]);
 
   return (
     <div className="space-y-6">
@@ -64,10 +69,10 @@ export function ReportsView({ data, canExport }: { data: AllReportsData; canExpo
       ) : null}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <ReportSpotlight title="Báo cáo Nam & Đức" sub="Ảnh • Video • Tổng bài • SEO" chip="Hiệu suất content" tone="blue" />
-        <ReportSpotlight title="Báo cáo fanpage" sub="Ảnh • Video • Tổng theo fanpage" chip="Kênh social" tone="violet" />
-        <ReportSpotlight title="Báo cáo Thiên" sub="Spend • Mess • Data • Cost" chip="Ads performance" tone="emerald" />
-        <ReportSpotlight title="Báo cáo Phượng" sub="Data tổng • theo nguồn • theo ngày" chip="Data input" tone="amber" />
+        <ReportSpotlight title="Báo cáo Nam & Đức" sub="Ảnh • Video • Tổng bài • SEO" chip="Hiệu suất content" tone="blue" onViewDetails={() => setActiveSpotlight('content')} />
+        <ReportSpotlight title="Báo cáo fanpage" sub="Ảnh • Video • Tổng theo fanpage" chip="Kênh social" tone="violet" onViewDetails={() => setActiveSpotlight('fanpage')} />
+        <ReportSpotlight title="Báo cáo Thiên" sub="Spend • Mess • Data • Cost" chip="Ads performance" tone="emerald" onViewDetails={() => setActiveSpotlight('ads')} />
+        <ReportSpotlight title="Báo cáo Phượng" sub="Data tổng • theo nguồn • theo ngày" chip="Data input" tone="amber" onViewDetails={() => setActiveSpotlight('data')} />
       </div>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
@@ -230,6 +235,8 @@ export function ReportsView({ data, canExport }: { data: AllReportsData; canExpo
         ]}
         rows={data.source}
       />
+
+      {detail ? <ReportDetailModal detail={detail} onClose={() => setActiveSpotlight(null)} /> : null}
     </div>
   );
 }
@@ -244,15 +251,179 @@ function MetricBox({ title, value, sub }: { title: string; value: string; sub: s
   );
 }
 
-function ReportSpotlight({ title, sub, chip, tone }: { title: string; sub: string; chip: string; tone: keyof typeof toneMap }) {
+function ReportSpotlight({
+  title,
+  sub,
+  chip,
+  tone,
+  onViewDetails
+}: {
+  title: string;
+  sub: string;
+  chip: string;
+  tone: keyof typeof toneMap;
+  onViewDetails: () => void;
+}) {
   const currentTone = toneMap[tone];
   return (
     <Card className={`p-5 shadow-sm ${currentTone.wrapper}`}>
       <div className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${currentTone.chip}`}>{chip}</div>
       <div className="mt-4 text-base font-semibold text-slate-900">{title}</div>
       <div className="mt-2 text-sm leading-6 text-slate-600">{sub}</div>
-      <button className="mt-5 rounded-xl bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm">Xem chi tiết</button>
+      <button className="mt-5 rounded-xl bg-white/80 px-3 py-2 text-sm font-medium text-slate-800 shadow-sm" onClick={onViewDetails}>Xem chi tiết</button>
     </Card>
+  );
+}
+
+type DetailRow = {
+  label: string;
+  value: string;
+};
+
+type SpotlightDetail = {
+  title: string;
+  description: string;
+  highlights: DetailRow[];
+  breakdown: DetailRow[];
+};
+
+function buildSpotlightDetail(activeSpotlight: SpotlightKey | null, data: AllReportsData): SpotlightDetail | null {
+  if (!activeSpotlight) return null;
+
+  if (activeSpotlight === 'content') {
+    const totals = data.content.reduce((acc, row) => {
+      acc.image += row.image;
+      acc.video += row.video;
+      acc.total += row.total;
+      acc.seo += row.seo;
+      return acc;
+    }, { image: 0, video: 0, total: 0, seo: 0 });
+
+    return {
+      title: 'Chi tiết báo cáo Nam & Đức',
+      description: 'Tổng hợp hiệu suất content và SEO theo nhân sự trong kỳ lọc hiện tại.',
+      highlights: [
+        { label: 'Tổng bài social', value: formatNumber(totals.total) },
+        { label: 'Tổng bài SEO', value: formatNumber(totals.seo) },
+        { label: 'Ảnh / Video', value: `${formatNumber(totals.image)} / ${formatNumber(totals.video)}` }
+      ],
+      breakdown: data.content.map((row) => ({
+        label: formatOwnerLabel(row.ownerName),
+        value: `${formatNumber(row.total)} bài (${formatNumber(row.image)} ảnh, ${formatNumber(row.video)} video, ${formatNumber(row.seo)} SEO)`
+      }))
+    };
+  }
+
+  if (activeSpotlight === 'fanpage') {
+    const totalPosts = data.fanpage.reduce((sum, row) => sum + row.total, 0);
+    return {
+      title: 'Chi tiết báo cáo fanpage',
+      description: 'So sánh sản lượng nội dung theo từng fanpage.',
+      highlights: [
+        { label: 'Số fanpage', value: formatNumber(data.fanpage.length) },
+        { label: 'Tổng bài', value: formatNumber(totalPosts) },
+        { label: 'Fanpage cao nhất', value: data.fanpage[0]?.fanpage || 'Chưa có dữ liệu' }
+      ],
+      breakdown: data.fanpage.map((row) => ({
+        label: row.fanpage,
+        value: `${formatNumber(row.total)} bài (${formatNumber(row.image)} ảnh, ${formatNumber(row.video)} video)`
+      }))
+    };
+  }
+
+  if (activeSpotlight === 'ads') {
+    return {
+      title: 'Chi tiết báo cáo Thiên',
+      description: 'Hiệu suất chi tiêu quảng cáo theo thương hiệu và hiệu quả data.',
+      highlights: [
+        { label: 'Tổng chi tiêu', value: formatCurrency(data.ads.spend) },
+        { label: 'Tổng mess', value: formatNumber(data.ads.messages) },
+        { label: 'Tổng data', value: formatNumber(data.ads.data) }
+      ],
+      breakdown: data.adsByBrand.map((row) => ({
+        label: formatBrandLabel(row.brand),
+        value: `${formatCurrency(row.spend)} • ${formatNumber(row.messages)} mess • ${formatNumber(row.data)} data • CPM ${formatNumber(Math.round(row.costPerMessage))}đ • CPD ${formatNumber(Math.round(row.costPerData))}đ`
+      }))
+    };
+  }
+
+  return {
+    title: 'Chi tiết báo cáo Phượng',
+    description: 'Tổng hợp data đầu vào theo nguồn và theo thương hiệu.',
+    highlights: [
+      { label: 'Tổng data', value: formatNumber(data.data.total) },
+      { label: 'Winhome', value: formatNumber(data.data.winhome) },
+      { label: 'Siêu Thị Kệ Giá', value: formatNumber(data.data.sieuThiKeGia) }
+    ],
+    breakdown: data.source.map((row) => ({
+      label: formatDataSourceLabel(row.source),
+      value: `${formatNumber(row.total)} data (Winhome ${formatNumber(row.WINHOME)}, STKG ${formatNumber(row.SIEU_THI_KE_GIA)})`
+    }))
+  };
+}
+
+function ReportDetailModal({ detail, onClose }: { detail: SpotlightDetail; onClose: () => void }) {
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') onClose();
+    }
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 z-[1100] flex items-end justify-center bg-slate-900/45 p-0 sm:items-center sm:p-4" role="dialog" aria-modal="true">
+      <button type="button" aria-label="Đóng" className="absolute inset-0" onClick={onClose} />
+
+      <div className="relative z-[1101] max-h-[90vh] w-full overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:max-w-2xl sm:rounded-3xl">
+        <div className="flex items-start justify-between border-b border-slate-200 px-4 py-4 sm:px-6">
+          <div>
+            <h3 className="text-lg font-bold text-slate-900">{detail.title}</h3>
+            <p className="mt-1 text-sm text-slate-500">{detail.description}</p>
+          </div>
+          <button
+            type="button"
+            aria-label="Đóng"
+            onClick={onClose}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition hover:bg-slate-200 hover:text-slate-800"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="max-h-[calc(90vh-74px)] space-y-5 overflow-y-auto px-4 py-4 sm:px-6">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {detail.highlights.map((item) => (
+              <div key={item.label} className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                <div className="text-xs font-medium text-slate-500">{item.label}</div>
+                <div className="mt-1 text-sm font-bold text-slate-900">{item.value}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white">
+            <div className="border-b border-slate-100 px-4 py-3 text-sm font-semibold text-slate-900">Phân rã chi tiết</div>
+            <div className="divide-y divide-slate-100">
+              {detail.breakdown.length ? detail.breakdown.map((row) => (
+                <div key={`${row.label}-${row.value}`} className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+                  <div className="text-sm font-medium text-slate-700">{row.label}</div>
+                  <div className="text-sm text-slate-600">{row.value}</div>
+                </div>
+              )) : (
+                <div className="px-4 py-5 text-sm text-slate-500">Chưa có dữ liệu chi tiết trong kỳ lọc hiện tại.</div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 

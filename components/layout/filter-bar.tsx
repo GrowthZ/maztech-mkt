@@ -17,7 +17,6 @@ export function FilterBar() {
   const queryKey = searchParams.toString();
 
   const enabled = useMemo(() => filterPaths.some((path) => pathname.startsWith(path)), [pathname]);
-  if (!enabled) return null;
 
   const mode = searchParams.get('mode') || 'month';
   const defaultMonth = useMemo(() => new Date().toISOString().slice(0, 7), []);
@@ -105,6 +104,8 @@ export function FilterBar() {
     if (!searchParams.toString()) return;
     router.replace(pathname);
   }
+
+  if (!enabled) return null;
 
   return (
     <div className="mb-5 rounded-3xl border border-slate-200 bg-white p-3 shadow-soft sm:mb-6 sm:p-4">
