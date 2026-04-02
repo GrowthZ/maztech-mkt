@@ -2,8 +2,8 @@ import { Spinner } from '@/components/ui/spinner';
 
 export default function Loading() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-100 via-white to-blue-50 p-6">
-      <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white/90 p-8 text-center shadow-xl backdrop-blur">
+    <div className="flex min-h-screen items-center justify-center bg-white p-6">
+      <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-xl">
         <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-sm">
           <img src="/maztech-logo.png" alt="Maztech" className="h-10 w-auto object-contain" />
         </div>
