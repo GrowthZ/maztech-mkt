@@ -107,8 +107,8 @@ export function FilterBar() {
   }
 
   return (
-    <div className="mb-6 rounded-3xl border border-slate-200 bg-white p-4 shadow-soft">
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-7">
+    <div className="mb-5 rounded-3xl border border-slate-200 bg-white p-3 shadow-soft sm:mb-6 sm:p-4">
+      <div className="grid gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-7">
         <div>
           <Label>Kỳ báo cáo</Label>
           <Select
@@ -180,9 +180,9 @@ export function FilterBar() {
           </Select>
         </div>
       </div>
-      <div className="mt-4 flex justify-end gap-3">
-        <Button variant="outline" className="border-[#0B1F66]/15 text-[#0B1F66] hover:bg-blue-50" onClick={reset}>Xóa bộ lọc</Button>
-        <Button className="bg-gradient-to-r from-[#0B1F66] to-[#D81920] text-white hover:opacity-95" onClick={apply}>Áp dụng</Button>
+      <div className="mt-4 grid grid-cols-1 gap-2 sm:flex sm:justify-end sm:gap-3">
+        <Button variant="outline" className="w-full border-[#0B1F66]/15 text-[#0B1F66] hover:bg-blue-50 sm:w-auto" onClick={reset}>Xóa bộ lọc</Button>
+        <Button className="w-full bg-gradient-to-r from-[#0B1F66] to-[#D81920] text-white hover:opacity-95 sm:w-auto" onClick={apply}>Áp dụng</Button>
       </div>
     </div>
   );

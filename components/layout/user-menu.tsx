@@ -17,12 +17,12 @@ export function UserMenu({ user }: { user: JwtUser }) {
   }
 
   return (
-    <div className="flex items-center gap-3">
-      <div className="text-right">
+    <div className="flex items-center gap-2 sm:gap-3">
+      <div className="hidden text-right sm:block">
         <div className="text-sm font-semibold text-slate-900">{user.fullName}</div>
         <div className="text-xs text-slate-500">{user.username} · {user.role}</div>
       </div>
-      <Button variant="outline" onClick={onLogout}>Đăng xuất</Button>
+      <Button variant="outline" className="px-3 py-2 text-xs sm:text-sm" onClick={onLogout}>Đăng xuất</Button>
     </div>
   );
 }

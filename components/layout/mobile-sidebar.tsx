@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, X, BarChart3, ClipboardList, FileBarChart2, FilePenLine, Megaphone, NotebookPen, Shield, Users } from 'lucide-react';
@@ -20,19 +20,45 @@ const links = [
 export function MobileSidebar({ user }: { user: JwtUser }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function openDrawer() {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+    setMounted(true);
+    requestAnimationFrame(() => setOpen(true));
+  }
+
+  function closeDrawer() {
+    setOpen(false);
+    closeTimeoutRef.current = setTimeout(() => {
+      setMounted(false);
+      closeTimeoutRef.current = null;
+    }, 220);
+  }
 
   useEffect(() => {
-    setOpen(false);
+    closeDrawer();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!mounted) return;
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = originalOverflow;
     };
-  }, [open]);
+  }, [mounted]);
+
+  useEffect(() => () => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+    }
+  }, []);
 
   const adminLinks = useMemo(() => ([
     { href: '/settings/users', label: 'Người dùng', icon: Users },
@@ -47,22 +73,28 @@ export function MobileSidebar({ user }: { user: JwtUser }) {
         type="button"
         aria-label="Mở menu"
         aria-expanded={open}
-        onClick={() => setOpen(true)}
+        onClick={openDrawer}
         className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm lg:hidden"
       >
         <Menu className="h-5 w-5" />
       </button>
 
-      {open ? (
+      {mounted ? (
         <div className="fixed inset-0 z-50 lg:hidden">
           <button
             type="button"
             aria-label="Đóng menu"
-            className="absolute inset-0 bg-slate-900/35 backdrop-blur-[1px]"
-            onClick={() => setOpen(false)}
+            className={cn(
+              'absolute inset-0 bg-slate-900/35 backdrop-blur-[1px] transition-opacity duration-200',
+              open ? 'opacity-100' : 'opacity-0'
+            )}
+            onClick={closeDrawer}
           />
 
-          <aside className="absolute left-0 top-0 flex h-full w-[82vw] max-w-xs flex-col border-r border-slate-200 bg-white p-4 shadow-2xl">
+          <aside className={cn(
+            'absolute left-0 top-0 flex h-full w-[82vw] max-w-xs flex-col border-r border-slate-200 bg-white p-4 shadow-2xl transition-transform duration-200 ease-out',
+            open ? 'translate-x-0' : '-translate-x-full'
+          )}>
             <div className="mb-4 flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
               <div>
                 <div className="text-xs uppercase tracking-[0.18em] text-slate-400">Maztech MKT Hub</div>
@@ -71,7 +103,7 @@ export function MobileSidebar({ user }: { user: JwtUser }) {
               <button
                 type="button"
                 aria-label="Đóng menu"
-                onClick={() => setOpen(false)}
+                onClick={closeDrawer}
                 className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700"
               >
                 <X className="h-5 w-5" />
@@ -86,7 +118,7 @@ export function MobileSidebar({ user }: { user: JwtUser }) {
                   <Link
                     key={item.href}
                     href={item.href}
-                    onClick={() => setOpen(false)}
+                    onClick={closeDrawer}
                     className={cn(
                       'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900',
                       active && 'bg-blue-50 text-[#0B1F66]'
@@ -110,7 +142,7 @@ export function MobileSidebar({ user }: { user: JwtUser }) {
                       <Link
                         key={item.href}
                         href={item.href}
-                        onClick={() => setOpen(false)}
+                        onClick={closeDrawer}
                         className={cn(
                           'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900',
                           active && 'bg-blue-50 text-[#0B1F66]'

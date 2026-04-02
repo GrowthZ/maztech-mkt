@@ -15,7 +15,7 @@ export default async function ProtectedLayout({ children }: { children: ReactNod
       <div className="mx-auto flex min-h-screen max-w-[1800px]">
         <Sidebar user={user} />
         <main className="flex-1 p-3 sm:p-4 lg:p-8">
-          <div className="mb-4 flex items-center justify-between gap-3 rounded-3xl border border-slate-200 bg-white px-4 py-4 shadow-soft sm:mb-6 sm:px-5">
+          <div className="sticky top-2 z-40 mb-4 flex items-center justify-between gap-3 rounded-3xl border border-slate-200 bg-white/95 px-4 py-3 shadow-soft backdrop-blur supports-[backdrop-filter]:bg-white/85 sm:mb-6 sm:px-5 lg:static lg:bg-white lg:backdrop-blur-0">
             <div className="flex min-w-0 items-center gap-3">
               <div className="lg:hidden">
                 <MobileSidebar user={user} />
@@ -24,8 +24,8 @@ export default async function ProtectedLayout({ children }: { children: ReactNod
                 <img src="/maztech-logo.png" alt="Maztech" className="h-10 w-auto object-contain" />
               </div>
               <div className="min-w-0">
-                <div className="text-xs uppercase tracking-[0.2em] text-slate-400">Maztech internal</div>
-                <div className="truncate text-lg font-semibold text-slate-900">Maztech MKT Hub</div>
+                <div className="text-[10px] uppercase tracking-[0.18em] text-slate-400 sm:text-xs">Maztech internal</div>
+                <div className="truncate text-base font-semibold text-slate-900 sm:text-lg">Maztech MKT Hub</div>
               </div>
             </div>
             <div className="shrink-0">
