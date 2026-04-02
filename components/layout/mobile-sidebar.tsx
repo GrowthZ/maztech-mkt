@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, X, BarChart3, ClipboardList, FileBarChart2, FilePenLine, Megaphone, NotebookPen, Shield, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { canAccessModule, type ModuleName } from '@/lib/permissions';
+import type { ModuleName } from '@/lib/permissions';
 import type { JwtUser } from '@/types';
 
 const links = [
@@ -65,7 +65,13 @@ export function MobileSidebar({ user }: { user: JwtUser }) {
     { href: '/audit-logs', label: 'Audit log', icon: Shield }
   ]), []);
 
-  const visibleLinks = useMemo(() => links.filter((item) => !item.module || canAccessModule(user, item.module)), [user]);
+  const visibleLinks = useMemo(() => {
+    if (user.role === 'ADMIN') return links;
+    if (user.role === 'CONTENT') return links.filter((item) => !item.module || item.module === 'content' || item.module === 'seo');
+    if (user.role === 'ADS') return links.filter((item) => !item.module || item.module === 'ads');
+    if (user.role === 'DATA_INPUT') return links.filter((item) => !item.module || item.module === 'data');
+    return links.filter((item) => !item.module);
+  }, [user.role]);
 
   return (
     <>
@@ -80,19 +86,19 @@ export function MobileSidebar({ user }: { user: JwtUser }) {
       </button>
 
       {mounted ? (
-        <div className="fixed inset-0 z-50 lg:hidden">
+        <div className="fixed inset-0 z-[120] lg:hidden">
           <button
             type="button"
             aria-label="Đóng menu"
             className={cn(
-              'absolute inset-0 bg-slate-900/35 backdrop-blur-[1px] transition-opacity duration-200',
+              'absolute inset-0 z-[121] bg-slate-900/35 backdrop-blur-[1px] transition-opacity duration-200',
               open ? 'opacity-100' : 'opacity-0'
             )}
             onClick={closeDrawer}
           />
 
           <aside className={cn(
-            'absolute left-0 top-0 flex h-full w-[82vw] max-w-xs flex-col border-r border-slate-200 bg-white p-4 shadow-2xl transition-transform duration-200 ease-out',
+            'absolute left-0 top-0 z-[122] flex h-full w-[82vw] max-w-xs flex-col border-r border-slate-200 bg-white p-4 shadow-2xl transition-transform duration-200 ease-out',
             open ? 'translate-x-0' : '-translate-x-full'
           )}>
             <div className="mb-4 flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
@@ -110,8 +116,8 @@ export function MobileSidebar({ user }: { user: JwtUser }) {
               </button>
             </div>
 
-            <nav className="space-y-1 overflow-y-auto pb-4">
-              {visibleLinks.map((item) => {
+            <nav className="flex-1 space-y-1 overflow-y-auto pb-4">
+              {visibleLinks.length ? visibleLinks.map((item) => {
                 const Icon = item.icon;
                 const active = pathname.startsWith(item.href);
                 return (
@@ -128,7 +134,11 @@ export function MobileSidebar({ user }: { user: JwtUser }) {
                     {item.label}
                   </Link>
                 );
-              })}
+              }) : (
+                <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
+                  Chưa có mục điều hướng khả dụng.
+                </div>
+              )}
             </nav>
 
             {user.role === 'ADMIN' ? (
